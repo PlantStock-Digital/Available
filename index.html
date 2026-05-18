@@ -13,6 +13,7 @@
             --neon-green: #39FF14; 
             --botanical-green: #4c7c4e;
             --border: #2a2a2a;
+            --neon-blue: #00E5FF;
         }
         
         body { 
@@ -42,7 +43,9 @@
         .btn-new { 
             background: transparent; color: var(--neon-green); border: 1px solid var(--neon-green); 
             padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.7rem;
+            transition: all 0.2s;
         }
+        .btn-new:hover { background: rgba(57, 255, 20, 0.1); }
 
         .vendor-box { width: 160px; }
 
@@ -59,6 +62,7 @@
             width: 100%; padding: 10px; background: #000; border: 1.5px solid var(--border); 
             border-radius: 8px; color: #fff; font-size: 0.9rem; box-sizing: border-box;
         }
+        input:focus, select:focus { border-color: var(--neon-green); outline: none; }
 
         #suggestions {
             position: absolute; top: 100%; left: 0; width: 100%; 
@@ -72,10 +76,18 @@
         .results-wrapper { 
             border: 1px solid var(--border); border-radius: 10px; 
             overflow: hidden; background: #000; flex-grow: 1; 
-            max-height: 65vh; overflow-y: auto; margin-bottom: 10px; 
+            max-height: 40vh; overflow-y: auto; margin-bottom: 10px; 
         }
-        .header { background: var(--botanical-green); display: grid; grid-template-columns: 1fr 2fr 1fr; padding: 10px; font-weight: bold; font-size: 0.75rem; position: sticky; top: 0; }
-        .row { display: grid; grid-template-columns: 1fr 2fr 1fr; padding: 10px; border-bottom: 1px solid #1a1a1a; font-size: 0.8rem; }
+        .header { background: var(--botanical-green); display: grid; grid-template-columns: 1fr 2fr 1fr 100px; padding: 10px; font-weight: bold; font-size: 0.75rem; position: sticky; top: 0; z-index: 10; }
+        .row { display: grid; grid-template-columns: 1fr 2fr 1fr 100px; padding: 10px; border-bottom: 1px solid #1a1a1a; font-size: 0.8rem; align-items: center; }
+        .row:hover { background: #0a0a0a; }
+
+        .btn-action {
+            background: transparent; color: var(--neon-blue); border: 1px solid var(--neon-blue);
+            padding: 4px 8px; border-radius: 5px; cursor: pointer; font-size: 0.65rem; font-weight: bold;
+            text-transform: uppercase; transition: all 0.2s; text-align: center;
+        }
+        .btn-action:hover { background: rgba(0, 229, 255, 0.15); }
 
         #plantDetailCard {
             background: #111; border-top: 3px solid var(--botanical-green);
@@ -83,12 +95,37 @@
             display: none; 
             margin-top: 5px;
             box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
+            margin-bottom: 10px;
         }
         .detail-title { color: var(--neon-green); font-size: 1rem; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 5px; }
         .detail-item { font-size: 0.85rem; color: #fff; margin-bottom: 6px; padding-left: 5px; border-left: 2px solid var(--botanical-green); }
 
+        /* Panel de Pedidos Guardados - Cambiado a Oculto por defecto */
+        .order-panel {
+            background: var(--card-bg); padding: 12px; border-radius: 15px;
+            border: 2px solid var(--neon-blue); margin-bottom: 10px;
+            display: none; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        .order-panel-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+        }
+        .order-title { color: var(--neon-blue); font-size: 0.9rem; font-weight: 800; }
+        .btn-download {
+            background: var(--neon-blue); color: #000; border: none;
+            padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.7rem;
+            text-transform: uppercase; transition: all 0.2s;
+        }
+        .btn-download:hover { background: #fff; box-shadow: 0 0 10px var(--neon-blue); }
+        #orderPreview {
+            background: #000; border: 1px solid var(--border); border-radius: 8px;
+            padding: 10px; font-family: monospace; font-size: 0.75rem; white-space: pre-wrap;
+            max-height: 150px; overflow-y: auto; color: #fff;
+        }
+
         @media (max-width: 600px) {
             .vendor-box { width: 130px; }
+            .header, .row { grid-template-columns: 1fr 1.5fr 0.8fr 80px; font-size: 0.7rem; }
             .main-search-row { grid-template-columns: 1fr 85px; }
         }
     </style>
@@ -103,6 +140,7 @@
     </div>
 
     <div class="container">
+        <!-- Panel de Búsqueda -->
         <div class="search-panel">
             <div class="top-controls">
                 <button class="btn-new" onclick="resetSearch()">NEW SEARCH</button>
@@ -140,19 +178,33 @@
             </div>
         </div>
 
+        <!-- Resultados de Inventario -->
         <div class="results-wrapper">
             <div id="resultsHeader" class="header" style="display: none;">
-                <div>VENDOR</div><div>NAME</div><div>SIZE</div>
+                <div>VENDOR</div><div>NAME</div><div>SIZE</div><div>ACTION</div>
             </div>
             <div id="resultsBody"></div>
         </div>
 
+        <!-- 1. Cuadro de Información Detallada (Arriba de la orden) -->
         <div id="plantDetailCard"></div>
+
+        <!-- 2. Panel de Pedido / Lista de Órdenes (Abajo y oculto inicialmente) -->
+        <div id="orderPanel" class="order-panel">
+            <div class="order-panel-header">
+                <div class="order-title">CURRENT ORDER LIST</div>
+                <button class="btn-download" onclick="downloadOrderFile()">Download Order</button>
+            </div>
+            <div id="orderPreview">No items added to order yet.</div>
+        </div>
     </div>
 
 <script>
     let plantDB = [];
     let suggestionsDB = [];
+    let lastSelectedPlantName = "";
+    let currentOrder = {}; 
+
     const formasAIgnorar = ["PREMIUM", "ASSORTED", "STD", "MULT", "PATIO", "ON", "POLE", "BOWL", "GARDEN", "CLAY", "SHRUB", "TREE", "STK", "COLUMN", "DWF", "SD", "MULTI", "TOP"];
 
     const plantInput = document.getElementById('plantInput');
@@ -163,6 +215,8 @@
     const resultsHeader = document.getElementById('resultsHeader');
     const preview = document.getElementById('selectionPreview');
     const detailCard = document.getElementById('plantDetailCard');
+    const orderPanel = document.getElementById('orderPanel');
+    const orderPreview = document.getElementById('orderPreview');
 
     function setDate() {
         const now = new Date();
@@ -183,27 +237,18 @@
             plantDB = await resP.json();
             suggestionsDB = await resH.json();
 
-            // Obtenemos proveedores únicos y ordenamos alfabéticamente primero
             let vendors = [...new Set(plantDB.map(i => i.company))].filter(Boolean).sort();
             
-            // --- LÓGICA DE ORDENAMIENTO POR PREFIJOS ---
-            
-            // 1. Matsudas siempre al principio (Prefijo "MATS")
             const matsudas = vendors.filter(v => v.toUpperCase().startsWith("MATS"));
-            
-            // 2. Belmon, Franza y Norman al final (Prefijos de 4 letras)
             const lastPrefixes = ["BELM", "FRAN", "NORM"];
             const lasts = vendors.filter(v => 
                 lastPrefixes.some(pref => v.toUpperCase().startsWith(pref))
             );
-
-            // 3. El resto de proveedores
             const middle = vendors.filter(v => 
                 !v.toUpperCase().startsWith("MATS") && 
                 !lastPrefixes.some(pref => v.toUpperCase().startsWith(pref))
             );
 
-            // Unimos todo en el orden deseado
             const finalVendorOrder = [...matsudas, ...middle, ...lasts];
 
             vendorFilter.innerHTML = '<option value="any">Any Vendor</option>' + 
@@ -211,7 +256,7 @@
             
             console.log("Database and Vendors updated");
         } catch (e) { 
-            console.error("Error loading files");
+            console.error("Error loading files", e);
             resultsBody.innerHTML = `<div style="padding:20px; text-align:center; color:var(--text-dim);">Error loading inventory. Please check GitHub files.</div>`;
         }
     }
@@ -236,6 +281,10 @@
         if (this.value.toUpperCase() !== cleanVal) { this.value = cleanVal; }
 
         let val = cleanVal.trim();
+
+        if (val !== procesarAbreviacion(lastSelectedPlantName).toUpperCase()) {
+            lastSelectedPlantName = "";
+        }
 
         if (val.length >= 2) {
             performSearch();
@@ -263,12 +312,14 @@
                 detailCard.style.display = "none";
                 preview.innerText = "Waiting for selection...";
                 preview.style.color = "var(--text-dim)";
+                lastSelectedPlantName = "";
             }
             performSearch(); 
         }
     });
 
     function applySelection(nombreLimpio) {
+        lastSelectedPlantName = nombreLimpio; 
         preview.innerText = nombreLimpio;
         preview.style.color = "var(--neon-green)";
         
@@ -290,6 +341,7 @@
         detailCard.style.display = "none";
         preview.innerText = "Browsing Catalog...";
         preview.style.color = "var(--text-dim)";
+        lastSelectedPlantName = "";
         performSearch();
     }
 
@@ -305,27 +357,129 @@
         }
 
         resultsHeader.style.display = "grid";
-        const queryWords = q.split(/\s+/).filter(Boolean);
+        
+        let queryWords = [];
+        let useFallbackMatching = false;
+        let fallbackWords = [];
+
+        if (lastSelectedPlantName && q === procesarAbreviacion(lastSelectedPlantName).toUpperCase()) {
+            useFallbackMatching = true;
+            fallbackWords = lastSelectedPlantName.toUpperCase().split('Lines')[0].replace(/[^A-Z0-9\s]/g, "").split(/\s+/).filter(Boolean);
+        }
+        
+        queryWords = q.split(/\s+/).filter(Boolean);
         
         const filtered = plantDB.filter(item => {
             const itemName = (item.name || "").toUpperCase();
             const itemSize = (item.size || "").toUpperCase();
-            const mN = q === "" || queryWords.every(w => itemName.includes(w));
+            
+            let mN = false;
+            if (q === "") {
+                mN = true;
+            } else {
+                mN = queryWords.every(w => itemName.includes(w));
+                if (!mN && useFallbackMatching) {
+                    mN = fallbackWords.every(w => itemName.includes(w));
+                }
+            }
+
             const mV = v === "any" || item.company === v;
             let mS = (s === "any") ? true : (s === "01" ? (itemSize.includes("01") || itemSize.includes("2Q")) : itemSize.includes(s.toUpperCase()));
             return mN && mV && mS;
         });
 
         if(filtered.length > 0) {
-            resultsBody.innerHTML = filtered.slice(0, 150).map(i => `
+            resultsBody.innerHTML = filtered.slice(0, 150).map((i, index) => {
+                const safetyCompany = i.company.replace(/"/g, '&quot;');
+                const safetyName = i.name.replace(/"/g, '&quot;');
+                const safetySize = i.size.replace(/"/g, '&quot;');
+                
+                return `
                 <div class="row">
                     <div>${i.company}</div>
                     <div>${i.name}</div>
                     <div>${i.size}</div>
-                </div>`).join('');
+                    <div>
+                        <button class="btn-action" onclick="addToOrder('${safetyCompany}', '${safetyName}', '${safetySize}')">Add Order</button>
+                    </div>
+                </div>`;
+            }).join('');
         } else {
             resultsBody.innerHTML = `<div style="padding:20px; text-align:center; color:var(--text-dim);">No matching stock found.</div>`;
         }
+    }
+
+    // --- LÓGICA DE PEDIDOS DINÁMICOS ---
+
+    function addToOrder(company, name, originalSize) {
+        let chosenSize = prompt(`Confirm or type the Size for:\n"${name}"\nFrom Vendor: ${company}`, originalSize);
+        
+        if (chosenSize === null || chosenSize.trim() === "") return;
+        chosenSize = chosenSize.trim().toUpperCase();
+
+        if (!currentOrder[company]) {
+            currentOrder[company] = [];
+        }
+
+        currentOrder[company].push({
+            name: name,
+            size: chosenSize
+        });
+
+        // Hacemos visible el contenedor de órdenes al agregar el primer elemento
+        orderPanel.style.display = "block";
+
+        updateOrderPreview();
+    }
+
+    function updateOrderPreview() {
+        const vendorsInOrder = Object.keys(currentOrder);
+
+        if (vendorsInOrder.length === 0) {
+            orderPreview.innerText = "No items added to order yet.";
+            orderPanel.style.display = "none"; // Si se vacía, lo vuelve a ocultar
+            return;
+        }
+
+        let outputText = "";
+        
+        vendorsInOrder.forEach(vendor => {
+            outputText += `VENDOR: ${vendor}\n`;
+            currentOrder[vendor].forEach(plant => {
+                outputText += `   -> ${plant.name} [Size: ${plant.size}]\n`;
+            });
+            outputText += `-------------------------------------------\n`;
+        });
+
+        orderPreview.innerText = outputText;
+    }
+
+    function downloadOrderFile() {
+        const vendorsInOrder = Object.keys(currentOrder);
+
+        if (vendorsInOrder.length === 0) {
+            alert("Your order list is empty. Add items first!");
+            return;
+        }
+
+        let textString = "";
+        
+        vendorsInOrder.forEach(vendor => {
+            textString += `COMPANY / VENDOR: ${vendor}\n`;
+            textString += `===========================================\n`;
+            currentOrder[vendor].forEach((plant, index) => {
+                textString += `${index + 1}. ${plant.name} - SIZE: ${plant.size}\n`;
+            });
+            textString += `\n\n`; 
+        });
+
+        const blob = new Blob([textString], { type: 'text/plain;charset=utf-8' });
+        const element = document.createElement('a');
+        element.href = URL.createObjectURL(blob);
+        element.download = `Plant_Order_${new Date().toISOString().slice(0,10)}.txt`;
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
     }
 
     function resetSearch() {
@@ -337,10 +491,12 @@
         detailCard.style.display = "none";
         resultsBody.innerHTML = "";
         resultsHeader.style.display = "none";
+        lastSelectedPlantName = "";
         plantInput.focus();
     }
 
     document.addEventListener('click', (e) => { if (e.target !== plantInput) sugBox.style.display = "none"; });
+    document.addEventListener('keydown', (e) => { if (e.key === "Escape") sugBox.style.display = "none"; });
 
     loadData();
 </script>
