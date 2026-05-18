@@ -135,7 +135,7 @@
             max-height: 100px; overflow-y: auto; color: #ccc;
         }
 
-        /* Estilo del botón eliminar (X) corregido */
+        /* Estilo del botón eliminar (X) */
         .btn-delete-item {
             background: transparent;
             color: #ff4444;
@@ -168,7 +168,7 @@
 </head>
 <body>
 
-    <div class="project-credit">PROJECT BY "HENRY P"</div>
+    <div class="project-credit">PROJECT BY MAMA GUERRERA</div>
     
     <div class="header-meta">
         <div class="welcome-title">WELCOME</div>
@@ -426,10 +426,14 @@
 
         if(filtered.length > 0) {
             resultsBody.innerHTML = filtered.slice(0, 150).map((i) => {
+                // Escapamos comillas dobles para los atributos HTML seguros
                 const safetyCompany = i.company.replace(/"/g, '&quot;');
                 const safetyName = i.name.replace(/"/g, '&quot;');
                 
-                // Dividir si hay múltiples tamaños por coma
+                // Reemplazamos también comillas simples de los nombres para que el string de 'onclick' no falle
+                const onclickCompany = safetyCompany.replace(/'/g, "\\'");
+                const onclickName = safetyName.replace(/'/g, "\\'");
+                
                 const rawSizes = i.size.split(',');
                 
                 let sizeHTML = '<div class="size-container">';
@@ -439,13 +443,13 @@
                     const trimmed = rawSize.trim();
                     if(!trimmed) return;
                     
-                    // Expresión Regular para extraer lo que está FUERA del paréntesis (El Tamaño)
                     const cleanSizeMatch = trimmed.match(/^([^(]+)/);
                     const cleanSize = cleanSizeMatch ? cleanSizeMatch[1].trim() : trimmed;
                     
-                    // Extraer los detalles de adentro del paréntesis si existen
                     const detailsMatch = trimmed.match(/\(([^)]+)\)/);
                     const details = detailsMatch ? `(${detailsMatch[1]})` : '';
+
+                    const onclickSize = cleanSize.replace(/"/g, '&quot;').replace(/'/g, "\\'");
 
                     sizeHTML += `
                         <div>
@@ -454,7 +458,7 @@
                         </div>`;
                         
                     actionHTML += `
-                        <button class="btn-action" onclick="addToOrder('${safetyCompany}', '${safetyName}', '${cleanSize.replace(/"/g, '&quot;')}')">Add</button>
+                        <button class="btn-action" onclick="addToOrder('${onclickCompany}', '${onclickName}', '${onclickSize}')">Add</button>
                     `;
                 });
                 
@@ -488,6 +492,10 @@
             size: cleanSize.trim().toUpperCase()
         });
 
+        // NOTIFICACIÓN: Cambia "Waiting for selection.." por el nombre de la planta añadida
+        preview.innerText = `ADDED TO ORDER: ${name} (${cleanSize.trim().toUpperCase()}) ✅`;
+        preview.style.color = "var(--neon-green)";
+
         updateOrderPreview();
     }
 
@@ -516,12 +524,13 @@
             htmlOutput += `<div style="color: var(--neon-blue); margin-bottom: 3px; font-weight: bold; font-size: 0.7rem;">VENDOR: ${vendor}</div>`;
             
             currentOrder[vendor].forEach((plant, index) => {
+                const safetyVendor = vendor.replace(/"/g, '&quot;').replace(/'/g, "\\'");
                 htmlOutput += `
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 2px 0; border-bottom: 1px dashed #222;">
                     <span>&nbsp;&nbsp;-> ${plant.name} <span style="color: var(--neon-green)">[${plant.size}]</span></span>
                     <button 
                         class="btn-delete-item"
-                        onclick="removeFromOrder('${vendor.replace(/"/g, '&quot;')}', ${index})">
+                        onclick="removeFromOrder('${safetyVendor}', ${index})">
                         X
                     </button>
                 </div>`;
