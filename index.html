@@ -100,7 +100,7 @@
         .detail-title { color: var(--neon-green); font-size: 1rem; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 5px; }
         .detail-item { font-size: 0.85rem; color: #fff; margin-bottom: 6px; padding-left: 5px; border-left: 2px solid var(--botanical-green); }
 
-        /* Panel de Pedidos Guardados - Cambiado a Oculto por defecto */
+        /* Panel de Pedidos Guardados */
         .order-panel {
             background: var(--card-bg); padding: 12px; border-radius: 15px;
             border: 2px solid var(--neon-blue); margin-bottom: 10px;
@@ -186,10 +186,10 @@
             <div id="resultsBody"></div>
         </div>
 
-        <!-- 1. Cuadro de Información Detallada (Arriba de la orden) -->
+        <!-- 1. Cuadro de Información Detallada -->
         <div id="plantDetailCard"></div>
 
-        <!-- 2. Panel de Pedido / Lista de Órdenes (Abajo y oculto inicialmente) -->
+        <!-- 2. Panel de Pedido / Lista de Órdenes -->
         <div id="orderPanel" class="order-panel">
             <div class="order-panel-header">
                 <div class="order-title">CURRENT ORDER LIST</div>
@@ -412,10 +412,7 @@
     // --- LÓGICA DE PEDIDOS DINÁMICOS ---
 
     function addToOrder(company, name, originalSize) {
-        let chosenSize = prompt(`Confirm or type the Size for:\n"${name}"\nFrom Vendor: ${company}`, originalSize);
-        
-        if (chosenSize === null || chosenSize.trim() === "") return;
-        chosenSize = chosenSize.trim().toUpperCase();
+        orderPanel.style.display = "block";
 
         if (!currentOrder[company]) {
             currentOrder[company] = [];
@@ -423,11 +420,18 @@
 
         currentOrder[company].push({
             name: name,
-            size: chosenSize
+            size: originalSize.trim().toUpperCase()
         });
 
-        // Hacemos visible el contenedor de órdenes al agregar el primer elemento
-        orderPanel.style.display = "block";
+        updateOrderPreview();
+    }
+
+    function removeFromOrder(company, index) {
+        currentOrder[company].splice(index, 1);
+
+        if (currentOrder[company].length === 0) {
+            delete currentOrder[company];
+        }
 
         updateOrderPreview();
     }
@@ -436,22 +440,33 @@
         const vendorsInOrder = Object.keys(currentOrder);
 
         if (vendorsInOrder.length === 0) {
-            orderPreview.innerText = "No items added to order yet.";
-            orderPanel.style.display = "none"; // Si se vacía, lo vuelve a ocultar
+            orderPreview.innerHTML = "No items added to order yet.";
+            orderPanel.style.display = "none";
             return;
         }
 
-        let outputText = "";
+        let htmlOutput = "";
         
         vendorsInOrder.forEach(vendor => {
-            outputText += `VENDOR: ${vendor}\n`;
-            currentOrder[vendor].forEach(plant => {
-                outputText += `   -> ${plant.name} [Size: ${plant.size}]\n`;
+            htmlOutput += `<div style="color: var(--neon-blue); margin-bottom: 5px; font-weight: bold;">VENDOR: ${vendor}</div>`;
+            
+            currentOrder[vendor].forEach((plant, index) => {
+                htmlOutput += `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 2px 0; border-bottom: 1px dashed #222;">
+                    <span>&nbsp;&nbsp;-> ${plant.name} [Size: ${plant.size}]</span>
+                    <button 
+                        onclick="removeFromOrder('${vendor.replace(/"/g, '&quot;')}', ${index})" 
+                        style="background: transparent; color: #ff4444; border: 1px solid #ff4444; border-radius: 4px; padding: 1px 6px; cursor: pointer; font-size: 0.65rem; font-weight: bold; margin-left: 10px;"
+                        onmouseover="this.style.background='rgba(255,68,68,0.15)'" 
+                        onmouseout="this.style.background='transparent'">
+                        X
+                    </button>
+                </div>`;
             });
-            outputText += `-------------------------------------------\n`;
+            htmlOutput += `<div style="color: #333; margin: 5px 0;">-------------------------------------------</div>`;
         });
 
-        orderPreview.innerText = outputText;
+        orderPreview.innerHTML = htmlOutput;
     }
 
     function downloadOrderFile() {
