@@ -28,62 +28,48 @@
 
         .project-credit { 
             position: absolute;
-            top: 20px;
+            top: 10px;
             right: 20px;
-            font-size: 0.7rem; 
+            font-size: 0.6rem; 
             color: var(--text-dim); 
             letter-spacing: 1.5px; 
             text-transform: uppercase;
+            display: none; /* Ocultado en móvil por espacio, visible en PC si se requiere */
+        }
+
+        /* MODIFICADO: Título y fecha en la misma línea */
+        .title-header-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 650px;
+            margin-bottom: 15px;
         }
 
         .main-app-title {
-            font-size: 1.8rem;
+            font-size: 1.4rem; /* Más pequeño para ahorrar espacio vertical */
             font-weight: bold;
             color: var(--text-main);
-            margin-bottom: 25px;
-            text-align: center;
-            width: 100%;
-            max-width: 650px;
+            margin: 0;
         }
 
+        .current-date { 
+            color: var(--text-dim); 
+            font-size: 0.8rem; 
+            text-align: right;
+        }
+
+        /* Contenedor meta superior (Solo para Vendor en Desktop) */
         .header-meta { 
             display: flex; 
-            justify-content: space-between; 
-            align-items: flex-start; 
+            justify-content: flex-start; 
+            align-items: center; 
             width: 100%;
             max-width: 650px; 
-            margin: 0 auto 20px;
-            font-size: 0.9rem;
+            margin: 0 auto 15px;
         }
         
-        .left-meta-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .welcome-title { color: var(--google-green); font-weight: bold; text-transform: uppercase; display: none; }
-        .current-date { color: var(--text-dim); font-size: 0.9rem; }
-
-        .container { 
-            max-width: 650px; 
-            width: 100%; 
-            display: flex; 
-            flex-direction: column; 
-            min-height: 95vh; 
-        }
-
-        /* MODIFICADO: Contenedor para permitir que las sugerencias fluyan a la derecha */
-        .search-area-wrapper {
-            position: relative;
-            width: 100%;
-            margin-bottom: 30px;
-        }
-
-        .search-container-fluid {
-            width: 100%;
-        }
-
         .vendor-box-row select {
             width: 160px; 
             padding: 8px 12px; 
@@ -102,11 +88,29 @@
             color: white;
         }
 
+        .container { 
+            max-width: 650px; 
+            width: 100%; 
+            display: flex; 
+            flex-direction: column; 
+            min-height: 95vh; 
+        }
+
+        .search-area-wrapper {
+            position: relative;
+            width: 100%;
+            margin-bottom: 25px;
+        }
+
+        .search-container-fluid {
+            width: 100%;
+        }
+
         #selectionPreview { 
             text-align: center; 
             font-weight: bold; 
-            margin-bottom: 15px; 
-            font-size: 0.9rem; 
+            margin-bottom: 10px; 
+            font-size: 0.85rem; 
             min-height: 1.2em;
             color: var(--google-green);
         }
@@ -132,8 +136,8 @@
 
         .main-search-row input { 
             border: none;
-            padding: 16px 24px;
-            font-size: 16px;
+            padding: 14px 20px;
+            font-size: 15px;
             outline: none;
             width: 100%;
             background: transparent;
@@ -146,7 +150,7 @@
             background: #222222;
             color: white;
             padding: 0 15px;
-            font-size: 14px;
+            font-size: 13px;
             outline: none;
             cursor: pointer;
             border-left: 1px solid #2a2a2a;
@@ -157,8 +161,8 @@
             background: var(--google-green);
             color: white;
             border: none;
-            padding: 0 25px;
-            font-size: 14px;
+            padding: 0 20px;
+            font-size: 13px;
             font-weight: bold;
             cursor: pointer;
             white-space: nowrap;
@@ -166,6 +170,11 @@
         }
         .main-search-row .btn-inline-new:hover { 
             background: var(--google-green-hover); 
+        }
+
+        /* Contenedor extra para filtros agrupados abajo en móvil */
+        .mobile-filters-row {
+            display: none;
         }
 
         .results-wrapper { 
@@ -263,11 +272,11 @@
         }
         .btn-action:hover { background: var(--google-green); color: white; }
 
-        /* MODIFICADO: Ubicación flotante y elegante a la derecha del buscador principal */
+        /* Sugerencias flotantes por defecto a la derecha (Desktop) */
         #suggestions {
             position: absolute; 
             left: calc(100% + 20px); 
-            top: 32px; /* Alineado con el input principal */
+            top: 25px; 
             width: 320px; 
             background: #111111; 
             border: 1px solid var(--border-color);
@@ -365,9 +374,8 @@
             background: rgba(255, 68, 68, 0.2);
         }
 
-        /* MODIFICADO: Ajuste responsivo para pantallas compactas */
+        /* MODIFICADO: Responsivo intermedio */
         @media (max-width: 1350px) {
-            /* Si la pantalla no es ultra-ancha, el menú de sugerencias baja de forma segura sin romper nada */
             #suggestions {
                 position: absolute;
                 left: 0;
@@ -378,12 +386,75 @@
             }
         }
 
+        /* MODIFICADO: Optimización crítica para Celulares (Pantallas pequeñas) */
         @media (max-width: 600px) {
-            .project-credit { position: static; text-align: center; margin-bottom: 10px; }
-            .main-search-row { border-radius: 20px; flex-wrap: wrap; }
-            .main-search-row select { width: 100%; border-left: none; border-top: 1px solid #2a2a2a; padding: 12px; }
-            .main-search-row .btn-inline-new { width: 100%; padding: 12px; }
-            .header, .row { grid-template-columns: 1fr 1.5fr 1fr 65px; font-size: 0.75rem; padding: 8px; }
+            body { padding: 10px; }
+            
+            .title-header-wrapper {
+                margin-bottom: 10px;
+            }
+            .main-app-title { font-size: 1.1rem; }
+            .current-date { font-size: 0.75rem; }
+
+            /* Ocultamos el contenedor meta superior en móvil */
+            .header-meta { display: none; }
+
+            /* Rediseñamos la barra de búsqueda para que solo tenga el input */
+            .main-search-row {
+                border-radius: 24px;
+            }
+            .main-search-row select, 
+            .main-search-row .btn-inline-new {
+                display: none; /* Se ocultan de la barra principal en móvil */
+            }
+
+            /* Activamos los filtros abajo de la barra de búsqueda */
+            .mobile-filters-row {
+                display: flex;
+                gap: 8px;
+                margin-top: 10px;
+                width: 100%;
+            }
+            .mobile-filters-row select {
+                flex: 1;
+                padding: 10px;
+                background: #111;
+                color: var(--text-main);
+                border: 1px solid #2a2a2a;
+                border-radius: 20px;
+                font-size: 0.8rem;
+                outline: none;
+            }
+            .mobile-filters-row .btn-mobile-new {
+                background: var(--google-green);
+                color: white;
+                border: none;
+                padding: 0 16px;
+                border-radius: 20px;
+                font-size: 0.8rem;
+                font-weight: bold;
+                cursor: pointer;
+            }
+
+            /* El cuadro de sugerencias aparece exactamente sobre los filtros inferiores */
+            #suggestions {
+                position: absolute;
+                left: 0;
+                top: 100%; /* Justo debajo del input principal */
+                width: 100%;
+                max-height: 200px;
+                z-index: 3000;
+                border-radius: 0 0 12px 12px;
+                box-shadow: 0 8px 20px rgba(0,0,0,0.9);
+                background: #161616;
+            }
+
+            .header, .row { 
+                grid-template-columns: 1fr 1.4fr 1fr 60px; 
+                font-size: 0.75rem; 
+                padding: 8px; 
+                gap: 6px;
+            }
             .row-name, .row-vendor { font-size: 0.75rem; }
         }
     </style>
@@ -392,20 +463,20 @@
 
     <div class="project-credit">PROJECT BY Henry P</div>
     
-    <div class="main-app-title">🌳 Availability Search</div>
+    <!-- MODIFICADO: Título y fecha unificados en la misma línea superior -->
+    <div class="title-header-wrapper">
+        <div class="main-app-title">🌳 Availability Search</div>
+        <div class="current-date" id="currentDate"></div>
+    </div>
 
+    <!-- Filtro exclusivo para pantallas grandes -->
     <div class="header-meta">
-        <div class="left-meta-group">
-            <div class="current-date" id="currentDate"></div>
-            <div class="vendor-box-row">
-                <select id="vendorFilter" onchange="handleComboChange()"></select>
-            </div>
+        <div class="vendor-box-row">
+            <select id="vendorFilter" onchange="handleComboChange()"></select>
         </div>
-        <div class="welcome-title">WELCOME</div>
     </div>
 
     <div class="container">
-        <!-- MODIFICADO: Ajuste estructural en los contenedores de búsqueda -->
         <div class="search-area-wrapper">
             <div class="search-container-fluid">
                 
@@ -415,6 +486,7 @@
                     <div class="input-group-search">
                         <input type="text" id="plantInput" placeholder="Search by name or SKU..." autocomplete="off">
                     </div>
+                    <!-- Filtros clásicos de Desktop -->
                     <select id="sizeFilter" onchange="handleComboChange()">
                         <option value="any">Size: Any</option>
                         <option value="01">01G / 2Q</option>
@@ -429,8 +501,27 @@
                     </select>
                     <button class="btn-inline-new" onclick="resetSearch()">New Search</button>
                 </div>
+
+                <!-- MODIFICADO: Botones y selectores reubicados ABAJO para vista móvil -->
+                <div class="mobile-filters-row">
+                    <select id="vendorFilterMobile" onchange="syncMobileFilters('vendor')"></select>
+                    <select id="sizeFilterMobile" onchange="syncMobileFilters('size')">
+                        <option value="any">Size: Any</option>
+                        <option value="01">01G / 2Q</option>
+                        <option value="02">02G</option>
+                        <option value="03">03G</option>
+                        <option value="05">05G</option>
+                        <option value="07">07G</option>
+                        <option value="10">10G</option>
+                        <option value="15">15G</option>
+                        <option value="24">24G</option>
+                        <option value="36">36G</option>
+                    </select>
+                    <button class="btn-mobile-new" onclick="resetSearch()">New</button>
+                </div>
+
             </div>
-            <!-- El cuadro de sugerencias ahora vive a nivel de área para posicionarse a la derecha -->
+            <!-- El cuadro de sugerencias flotará encima de los filtros móviles si se despliega -->
             <div id="suggestions"></div>
         </div>
 
@@ -465,7 +556,9 @@
 
     const plantInput = document.getElementById('plantInput');
     const vendorFilter = document.getElementById('vendorFilter');
+    const vendorFilterMobile = document.getElementById('vendorFilterMobile');
     const sizeFilter = document.getElementById('sizeFilter');
+    const sizeFilterMobile = document.getElementById('sizeFilterMobile');
     const sugBox = document.getElementById('suggestions');
     const resultsBody = document.getElementById('resultsBody');
     const resultsHeader = document.getElementById('resultsHeader');
@@ -507,13 +600,26 @@
 
             const finalVendorOrder = [...matsudas, ...middle, ...lasts];
 
-            vendorFilter.innerHTML = '<option value="any">Vendor (Any)</option>' + 
+            const optionsHTML = '<option value="any">Vendor (Any)</option>' + 
                 finalVendorOrder.map(v => `<option value="${v}">${v}</option>`).join('');
+            
+            vendorFilter.innerHTML = optionsHTML;
+            vendorFilterMobile.innerHTML = optionsHTML;
             
         } catch (e) { 
             console.error("Error loading files", e);
             resultsBody.innerHTML = `<div style="padding:20px; text-align:center; color:var(--text-dim);">Error loading inventory. Please check GitHub files.</div>`;
         }
+    }
+
+    // MODIFICADO: Sincroniza los selectores móviles con los del escritorio
+    function syncMobileFilters(type) {
+        if (type === 'vendor') {
+            vendorFilter.value = vendorFilterMobile.value;
+        } else if (type === 'size') {
+            sizeFilter.value = sizeFilterMobile.value;
+        }
+        handleComboChange();
     }
 
     function procesarAbreviacion(texto) {
@@ -782,7 +888,9 @@
     function resetSearch() {
         plantInput.value = ""; 
         vendorFilter.value = "any"; 
+        vendorFilterMobile.value = "any";
         sizeFilter.value = "any";
+        sizeFilterMobile.value = "any";
         preview.innerText = ""; 
         detailCard.style.display = "none";
         resultsBody.innerHTML = "";
