@@ -159,6 +159,29 @@
             color: #ff6666;
         }
 
+        /* --- ESTILOS INYECTADOS: Separadores de grupos de plantas --- */
+        .group-category-header {
+            display: flex;
+            align-items: center;
+            background: #141414;
+            padding: 6px 10px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--neon-blue);
+            letter-spacing: 1px;
+            border-left: 3px solid var(--neon-blue);
+            margin-top: 4px;
+            position: sticky;
+            top: 31px; 
+            z-index: 5;
+        }
+        .group-line {
+            flex-grow: 1;
+            height: 1px;
+            background: linear-gradient(to right, rgba(0, 229, 255, 0.3), transparent);
+            margin-left: 12px;
+        }
+
         @media (max-width: 600px) {
             .vendor-box { width: 130px; }
             .header, .row { grid-template-columns: 1fr 1.5fr 0.8fr 80px; font-size: 0.7rem; }
@@ -176,7 +199,6 @@
     </div>
 
     <div class="container">
-        <!-- Panel de Búsqueda -->
         <div class="search-panel">
             <div class="top-controls">
                 <button class="btn-new" onclick="resetSearch()">NEW SEARCH</button>
@@ -214,7 +236,6 @@
             </div>
         </div>
 
-        <!-- Resultados de Inventario -->
         <div class="results-wrapper">
             <div id="resultsHeader" class="header" style="display: none;">
                 <div>VENDOR</div><div>NAME</div><div>SIZE</div><div>ACTION</div>
@@ -222,10 +243,8 @@
             <div id="resultsBody"></div>
         </div>
 
-        <!-- 1. Cuadro de Información Detallada -->
         <div id="plantDetailCard"></div>
 
-        <!-- 2. Panel de Pedido / Lista de Órdenes -->
         <div id="orderPanel" class="order-panel">
             <div class="order-panel-header">
                 <div class="order-title">CURRENT ORDER LIST</div>
@@ -381,6 +400,7 @@
         performSearch();
     }
 
+    // === FUNCIÓN DE BÚSQUEDA MODIFICADA CON AGRUPACIÓN DE FAMILIAS ===
     function performSearch() {
         const q = plantInput.value.toUpperCase().trim();
         const v = vendorFilter.value;
@@ -405,6 +425,7 @@
         
         queryWords = q.split(/\s+/).filter(Boolean);
         
+        // 1. Filtrado de datos original
         const filtered = plantDB.filter(item => {
             const itemName = (item.name || "").toUpperCase();
             const itemSize = (item.size || "").toUpperCase();
@@ -424,58 +445,101 @@
             return mN && mV && mS;
         });
 
+        // 2. Renderizado dinámico condicional
         if(filtered.length > 0) {
-            resultsBody.innerHTML = filtered.slice(0, 150).map((i) => {
-                // Escapamos comillas dobles para los atributos HTML seguros
-                const safetyCompany = i.company.replace(/"/g, '&quot;');
-                const safetyName = i.name.replace(/"/g, '&quot;');
-                
-                // Reemplazamos también comillas simples de los nombres para que el string de 'onclick' no falle
-                const onclickCompany = safetyCompany.replace(/'/g, "\\'");
-                const onclickName = safetyName.replace(/'/g, "\\'");
-                
-                const rawSizes = i.size.split(',');
-                
-                let sizeHTML = '<div class="size-container">';
-                let actionHTML = '<div class="action-container">';
-                
-                rawSizes.forEach(rawSize => {
-                    const trimmed = rawSize.trim();
-                    if(!trimmed) return;
-                    
-                    const cleanSizeMatch = trimmed.match(/^([^(]+)/);
-                    const cleanSize = cleanSizeMatch ? cleanSizeMatch[1].trim() : trimmed;
-                    
-                    const detailsMatch = trimmed.match(/\(([^)]+)\)/);
-                    const details = detailsMatch ? `(${detailsMatch[1]})` : '';
+            let htmlFinal = "";
 
-                    const onclickSize = cleanSize.replace(/"/g, '&quot;').replace(/'/g, "\\'");
+            // SI SE FILTRA UN PROVEEDOR (Agrupación tipo Excel)
+            if (v !== "any") {
+                const grupos = {};
 
-                    sizeHTML += `
-                        <div>
-                            <span class="row-size-clean">${cleanSize}</span>
-                            <span class="row-size-details">${details}</span>
-                        </div>`;
-                        
-                    actionHTML += `
-                        <button class="btn-action" onclick="addToOrder('${onclickCompany}', '${onclickName}', '${onclickSize}')">Add</button>
-                    `;
+                filtered.forEach(item => {
+                    const nombrePlanta = (item.name || "").trim();
+                    let grupoClave = "VARIOS";
+
+                    if (nombrePlanta !== "") {
+                        const words = nombrePlanta.split(" ");
+                        grupoClave = words[0].toUpperCase().replace(/[^A-Z0-9]/g, ""); 
+                    }
+
+                    if (!grupos[grupoClave]) {
+                        grupos[grupoClave] = [];
+                    }
+                    grupos[grupoClave].push(item);
                 });
-                
-                sizeHTML += '</div>';
-                actionHTML += '</div>';
-                
-                return `
-                <div class="row">
-                    <div>${i.company}</div>
-                    <div>${i.name}</div>
-                    <div>${sizeHTML}</div>
-                    <div>${actionHTML}</div>
-                </div>`;
-            }).join('');
+
+                // Ordenar grupos alfabéticamente y construirlos con barras visuales
+                Object.keys(grupos).sort().forEach(grupo => {
+                    htmlFinal += `
+                    <div class="group-category-header">
+                        <span>🧬 GRUPO: ${grupo}</span>
+                        <span class="group-line"></span>
+                    </div>`;
+
+                    grupos[grupo].forEach(item => {
+                        htmlFinal += renderizarFilaOriginal(item);
+                    });
+                });
+
+            } else {
+                // MUESTRA PLANA NORMAL (Si no se ha elegido proveedor en el combo)
+                filtered.slice(0, 150).forEach(item => {
+                    htmlFinal += renderizarFilaOriginal(item);
+                });
+            }
+
+            resultsBody.innerHTML = htmlFinal;
         } else {
             resultsBody.innerHTML = `<div style="padding:20px; text-align:center; color:var(--text-dim);">No matching stock found.</div>`;
         }
+    }
+
+    // FUNCIÓN AUXILIAR: Mantiene el renderizado exacto de tus celdas e interacciones de tu versión original
+    function renderizarFilaOriginal(i) {
+        const safetyCompany = i.company.replace(/"/g, '&quot;');
+        const safetyName = i.name.replace(/"/g, '&quot;');
+        
+        const onclickCompany = safetyCompany.replace(/'/g, "\\'");
+        const onclickName = safetyName.replace(/'/g, "\\'");
+        
+        const rawSizes = i.size.split(',');
+        
+        let sizeHTML = '<div class="size-container">';
+        let actionHTML = '<div class="action-container">';
+        
+        rawSizes.forEach(rawSize => {
+            const trimmed = rawSize.trim();
+            if(!trimmed) return;
+            
+            const cleanSizeMatch = trimmed.match(/^([^(]+)/);
+            const cleanSize = cleanSizeMatch ? cleanSizeMatch[1].trim() : trimmed;
+            
+            const detailsMatch = trimmed.match(/\(([^)]+)\)/);
+            const details = detailsMatch ? `(${detailsMatch[1]})` : '';
+
+            const onclickSize = cleanSize.replace(/"/g, '&quot;').replace(/'/g, "\\'");
+
+            sizeHTML += `
+                <div>
+                    <span class="row-size-clean">${cleanSize}</span>
+                    <span class="row-size-details">${details}</span>
+                </div>`;
+                
+            actionHTML += `
+                <button class="btn-action" onclick="addToOrder('${onclickCompany}', '${onclickName}', '${onclickSize}')">Add</button>
+            `;
+        });
+        
+        sizeHTML += '</div>';
+        actionHTML += '</div>';
+        
+        return `
+        <div class="row">
+            <div>${i.company}</div>
+            <div>${i.name}</div>
+            <div>${sizeHTML}</div>
+            <div>${actionHTML}</div>
+        </div>`;
     }
 
     // --- LÓGICA DE PEDIDOS DINÁMICOS ---
@@ -492,7 +556,6 @@
             size: cleanSize.trim().toUpperCase()
         });
 
-        // NOTIFICACIÓN: Cambia "Waiting for selection.." por el nombre de la planta añadida
         preview.innerText = `ADDED TO ORDER: ${name} (${cleanSize.trim().toUpperCase()}) ✅`;
         preview.style.color = "var(--neon-green)";
 
