@@ -159,7 +159,7 @@
             color: #ff6666;
         }
 
-        /* --- ESTILOS CORREGIDOS: Separadores de grupos centrados en medio de la tabla con líneas laterales --- */
+        /* --- ESTILOS: Separadores de grupos centrados en medio de la tabla con líneas laterales --- */
         .group-category-header {
             display: flex;
             align-items: center;
@@ -300,17 +300,19 @@
 
             let vendors = [...new Set(plantDB.map(i => i.company))].filter(Boolean).sort();
             
-            const matsudas = vendors.filter(v => v.toUpperCase().startsWith("MATS"));
-            const lastPrefixes = ["BELM", "FRAN", "NORM"];
+            const matsudas = vendors.filter(v => v.toUpperCase().startsWith("MATS") || v.toUpperCase().startsWith("MAT"));
+            const knus = vendors.filter(v => v.toUpperCase().startsWith("KNU"));
+            const lastPrefixes = ["BEL", "FRAN", "NORM"];
             const lasts = vendors.filter(v => 
                 lastPrefixes.some(pref => v.toUpperCase().startsWith(pref))
             );
             const middle = vendors.filter(v => 
-                !v.toUpperCase().startsWith("MATS") && 
+                !v.toUpperCase().startsWith("MATS") && !v.toUpperCase().startsWith("MAT") &&
+                !v.toUpperCase().startsWith("KNU") &&
                 !lastPrefixes.some(pref => v.toUpperCase().startsWith(pref))
             );
 
-            const finalVendorOrder = [...matsudas, ...middle, ...lasts];
+            const finalVendorOrder = [...matsudas, ...knus, ...middle, ...lasts];
 
             vendorFilter.innerHTML = '<option value="any">Any Vendor</option>' + 
                 finalVendorOrder.map(v => `<option value="${v}">${v}</option>`).join('');
@@ -430,7 +432,8 @@
         
         queryWords = q.split(/\s+/).filter(Boolean);
         
-        const filtered = plantDB.filter(item => {
+        // 1. Filtrado de datos inicial
+        let filtered = plantDB.filter(item => {
             const itemName = (item.name || "").toUpperCase();
             const itemSize = (item.size || "").toUpperCase();
             
@@ -447,6 +450,28 @@
             const mV = v === "any" || item.company === v;
             let mS = (s === "any") ? true : (s === "01" ? (itemSize.includes("01") || itemSize.includes("2Q")) : itemSize.includes(s.toUpperCase()));
             return mN && mV && mS;
+        });
+
+        // 2. ORDENAR LOS RESULTADOS SEGÚN LAS REGLAS DEL PROVEEDOR
+        filtered.sort((a, b) => {
+            const compA = (a.company || "").toUpperCase();
+            const compB = (b.company || "").toUpperCase();
+            
+            function getOrderScore(comp) {
+                if (comp.startsWith("MAT")) return 1;
+                if (comp.startsWith("KNU")) return 2;
+                if (comp.startsWith("FRAN") || comp.startsWith("BEL") || comp.startsWith("NORM")) return 4;
+                return 3; // El resto de proveedores en medio
+            }
+            
+            const scoreA = getOrderScore(compA);
+            const scoreB = getOrderScore(compB);
+            
+            if (scoreA !== scoreB) {
+                return scoreA - scoreB;
+            }
+            // Si están en la misma categoría, ordenar alfabéticamente por proveedor
+            return compA.localeCompare(compB);
         });
 
         if(filtered.length > 0) {
