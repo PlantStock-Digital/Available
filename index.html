@@ -159,11 +159,11 @@
             color: #ff6666;
         }
 
-        /* --- ESTILOS INYECTADOS: Separadores de grupos de plantas centrados --- */
+        /* --- ESTILOS CORREGIDOS: Separadores de grupos centrados en medio de la tabla con líneas laterales --- */
         .group-category-header {
             display: flex;
             align-items: center;
-            justify-content: center; /* Centra el contenido horizontalmente */
+            justify-content: center;
             background: #141414;
             padding: 6px 10px;
             font-size: 0.7rem;
@@ -175,7 +175,13 @@
             top: 31px; 
             z-index: 5;
         }
-        .group-line {
+        .group-line-left {
+            flex-grow: 1;
+            height: 1px;
+            background: linear-gradient(to left, rgba(0, 229, 255, 0.3), transparent);
+            margin-right: 12px;
+        }
+        .group-line-right {
             flex-grow: 1;
             height: 1px;
             background: linear-gradient(to right, rgba(0, 229, 255, 0.3), transparent);
@@ -467,8 +473,9 @@
                 Object.keys(grupos).sort().forEach(grupo => {
                     htmlFinal += `
                     <div class="group-category-header">
+                        <span class="group-line-left"></span>
                         <span>🧬 ${grupo}</span>
-                        <span class="group-line"></span>
+                        <span class="group-line-right"></span>
                     </div>`;
 
                     grupos[grupo].forEach(item => {
