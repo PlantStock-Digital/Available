@@ -83,12 +83,15 @@
         .row { display: grid; grid-template-columns: 1fr 2fr 1fr 100px; padding: 10px; border-bottom: 1px solid #1a1a1a; font-size: 0.8rem; align-items: center; }
         .row:hover { background: #0a0a0a; }
         
+        /* Estilos para los bloques de tamaños limpios */
         .size-container { display: flex; flex-direction: column; gap: 4px; }
         .row-size-clean { color: var(--neon-green); font-weight: bold; font-size: 0.8rem; }
         .row-size-details { color: var(--text-dim); font-size: 0.65rem; }
 
+        /* Contenedor de botones de acción por celda */
         .action-container { display: flex; flex-direction: column; gap: 4px; }
 
+        /* Botón ADD discreto */
         .btn-action {
             background: transparent; color: var(--text-dim); border: 1px solid transparent;
             padding: 3px 6px; border-radius: 4px; cursor: pointer; font-size: 0.65rem; font-weight: 500;
@@ -108,6 +111,7 @@
         .detail-title { color: var(--neon-green); font-size: 1rem; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 5px; }
         .detail-item { font-size: 0.85rem; color: #fff; margin-bottom: 6px; padding-left: 5px; border-left: 2px solid var(--botanical-green); }
 
+        /* Panel de Pedido compacto */
         .order-panel {
             background: #121212; padding: 8px 12px; border-radius: 10px;
             border: 1px solid #333; margin-top: 5px; margin-bottom: 5px;
@@ -131,19 +135,35 @@
             max-height: 100px; overflow-y: auto; color: #ccc;
         }
 
+        /* Estilo del botón eliminar (X) */
         .btn-delete-item {
-            background: transparent; color: #ff4444; border: 1px solid #ff4444;
-            border-radius: 50%; width: 16px; height: 16px; display: inline-flex;
-            align-items: center; justify-content: center; cursor: pointer; font-size: 0.6rem;
-            font-weight: bold; padding: 0; margin-left: 10px; transition: all 0.2s; flex-shrink: 0;
+            background: transparent;
+            color: #ff4444;
+            border: 1px solid #ff4444;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.6rem;
+            font-weight: bold;
+            padding: 0;
+            margin-left: 10px;
+            transition: all 0.2s;
+            flex-shrink: 0;
         }
-        .btn-delete-item:hover { background: rgba(255, 68, 68, 0.2); color: #ff6666; }
+        .btn-delete-item:hover {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff6666;
+        }
 
-        /* --- Estilo de separadores de grupo centrados --- */
+        /* --- ESTILOS INYECTADOS: Separadores de grupos de plantas centrados --- */
         .group-category-header {
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: center; /* Centra el contenido horizontalmente */
             background: #141414;
             padding: 6px 10px;
             font-size: 0.7rem;
@@ -154,13 +174,12 @@
             position: sticky;
             top: 31px; 
             z-index: 5;
-            text-align: center;
         }
         .group-line {
             flex-grow: 1;
             height: 1px;
-            margin-left: 12px;
             background: linear-gradient(to right, rgba(0, 229, 255, 0.3), transparent);
+            margin-left: 12px;
         }
 
         @media (max-width: 600px) {
@@ -242,30 +261,6 @@
     let currentOrder = {}; 
 
     const formasAIgnorar = ["PREMIUM", "ASSORTED", "STD", "MULT", "PATIO", "ON", "POLE", "BOWL", "GARDEN", "CLAY", "SHRUB", "TREE", "STK", "COLUMN", "DWF", "SD", "MULTI", "TOP"];
-
-    // --- PALETA DE COLORES PROFESIONAL PARA PROVEEDORES ---
-    const coloresProveedores = [
-        "#a3be8c", // Verde Olivo claro
-        "#81a1c1", // Azul Acero
-        "#b48ead", // Lavanda sutil
-        "#ecc48d", // Oro viejo
-        "#88c0d0", // Cyan opaco
-        "#df8e7d", // Coral suave
-        "#e5b9c4", // Rosa pastel apagado
-        "#94b4a4"  // Verde menta seco
-    ];
-
-    let mapaColoresProveedores = {};
-
-    function obtenerColorProveedor(vendor) {
-        if (!vendor) return "var(--text-main)";
-        const vUpper = vendor.toUpperCase().trim();
-        if (!mapaColoresProveedores[vUpper]) {
-            const index = Object.keys(mapaColoresProveedores).length % coloresProveedores.length;
-            mapaColoresProveedores[vUpper] = coloresProveedores[index];
-        }
-        return mapaColoresProveedores[vUpper];
-    }
 
     const plantInput = document.getElementById('plantInput');
     const vendorFilter = document.getElementById('vendorFilter');
@@ -472,8 +467,7 @@
                 Object.keys(grupos).sort().forEach(grupo => {
                     htmlFinal += `
                     <div class="group-category-header">
-                        <span class="group-line" style="margin-right: 12px; margin-left: 0; background: linear-gradient(to left, rgba(0, 229, 255, 0.3), transparent);"></span>
-                        <span style="flex-shrink: 0;">🧬 ${grupo}</span>
+                        <span>🧬 ${grupo}</span>
                         <span class="group-line"></span>
                     </div>`;
 
@@ -532,11 +526,9 @@
         sizeHTML += '</div>';
         actionHTML += '</div>';
         
-        const colorProveedor = obtenerColorProveedor(i.company);
-        
         return `
         <div class="row">
-            <div style="color: ${colorProveedor}; font-weight: 600;">${i.company}</div>
+            <div>${i.company}</div>
             <div>${i.name}</div>
             <div>${sizeHTML}</div>
             <div>${actionHTML}</div>
@@ -583,8 +575,7 @@
         let htmlOutput = "";
         
         vendorsInOrder.forEach(vendor => {
-            const colorColor = obtenerColorProveedor(vendor);
-            htmlOutput += `<div style="color: ${colorColor}; margin-bottom: 3px; font-weight: bold; font-size: 0.7rem;">VENDOR: ${vendor}</div>`;
+            htmlOutput += `<div style="color: var(--neon-blue); margin-bottom: 3px; font-weight: bold; font-size: 0.7rem;">VENDOR: ${vendor}</div>`;
             
             currentOrder[vendor].forEach((plant, index) => {
                 const safetyVendor = vendor.replace(/"/g, '&quot;').replace(/'/g, "\\'");
